@@ -12,4 +12,4 @@ class vpn_mnist_config:
     data_dir = '/home/cgf/Data/mnist_test_seq.npy'
     train_sequences_num = 7000
     truncated_steps = 9
-    batch_size = 1
+    batch_size = 4
