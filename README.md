@@ -9,6 +9,11 @@
 - ...
 
 ---
+## 视频预测相关论文
+
+[Prediction Under Uncertainty with Error-Encoding Networks](https://arxiv.org/abs/1711.04994) EEN
+
+---
 ### 网络实现
 
 - ConvLSTM
