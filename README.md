@@ -17,6 +17,7 @@
 ### 网络实现
 
 - ConvLSTM
+- PredNet [prednet实现](doc/prednet_implement.md)
 - ...
 
 ---
@@ -35,6 +36,7 @@
 ### 数据
 
 - Moving MNIST
+- Kitti数据集[doc/kitti_dataset.md]
 - ...
 
 ---
