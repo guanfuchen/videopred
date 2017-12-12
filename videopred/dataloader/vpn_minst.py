@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import numpy as np
 from .config import vpn_mnist_config
-from .logger import Logger
+# from .logger import Logger
 
 
 class GenerateData:
@@ -14,7 +14,7 @@ class GenerateData:
         np.random.shuffle(shuffled_idxs)
         sequences = sequences[shuffled_idxs]
 
-        Logger.debug(('data shape', sequences.shape))
+        # Logger.debug(('data shape', sequences.shape))
 
         self.train_sequences = sequences[:vpn_mnist_config.train_sequences_num]
         self.test_sequences = sequences[vpn_mnist_config.train_sequences_num:]
