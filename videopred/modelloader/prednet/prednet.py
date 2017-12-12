@@ -64,8 +64,8 @@ class PredNet(nn.Module):
         batch_size = x.size(0)
 
         for l in range(self.n_layers):
-            E_seq[l] = Variable(torch.zeros(batch_size, 2 * self.a_channels[l], h, w))
-            R_seq[l] = Variable(torch.zeros(batch_size, self.r_channels[l], h, w))
+            E_seq[l] = Variable(torch.zeros(batch_size, 2*self.a_channels[l], w, h))
+            R_seq[l] = Variable(torch.zeros(batch_size, self.r_channels[l], w, h))
             w = w // 2
             h = h // 2
         time_steps = x.size(1)
@@ -86,6 +86,7 @@ class PredNet(nn.Module):
                     hx = (R, R)
                 else:
                     E = E_seq[l]
+                    R = R_seq[l]
                     hx = H_seq[l]
                 # 最后一层，获取状态，其他几层将后面的层上采样进行连接
                 if l == self.n_layers - 1:

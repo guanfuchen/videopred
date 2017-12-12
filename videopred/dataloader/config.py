@@ -19,6 +19,7 @@ class vpn_mnist_config:
     batch_size = 4
     num_timestamps = 10
 
+
 class kitti_data_config:
     def __init__(self):
         pass
