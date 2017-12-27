@@ -41,10 +41,10 @@ def main():
     print(kitti_val_dataset[0].shape)
     kitti_val_loader = DataLoader(kitti_val_dataset, batch_size=kitti_data_config.batch_size, shuffle=True)
     for kitti_index, kitti_val in enumerate(kitti_val_loader):
-        print kitti_index
-        # print(kitti_val[0][0])
+        # print kitti_index
+        # print(kitti_val[0][0].numpy())
         plt.subplot(2, kitti_data_config.batch_size, kitti_index+1)
-        plt.imshow(kitti_val[0][0])
+        plt.imshow(kitti_val[0][0].numpy())
     plt.subplot(2, kitti_data_config.batch_size, kitti_index+2)
     plt.imshow(kitti_val_dataset[0][0])
     plt.show()

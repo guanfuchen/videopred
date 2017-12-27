@@ -4,6 +4,12 @@
 
 参考Deep Predictive Coding Networks for Video Prediction and Unsupervised Learning [论文](https://arxiv.org/abs/1605.08104)
 
+## 参考代码
+
+prednet参考代码如下所示：
+- [pytorch-prednet](https://github.com/leido/pytorch-prednet)
+- [PredNet](https://github.com/quadjr/PredNet)
+
 ## 基本架构
 
 
