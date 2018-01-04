@@ -6,7 +6,7 @@ Code to train the models described in the paper ["Prediction under Uncertainty w
 
 &nbsp;
 
-![Diagram](img/een-crop.png)
+![Diagram](https://github.com/mbhenaff/EEN/blob/master/img/een-crop.png)
 
 &nbsp;
 

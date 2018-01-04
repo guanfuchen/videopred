@@ -35,17 +35,19 @@ ImageLoader=imp.load_source('ImageLoader', 'dataloaders/{}.py'.format(data_confi
 dataloader = ImageLoader(data_config)
 
 opt.save_dir = '{}/{}/'.format(opt.save_dir, opt.task)
+# print(opt.save_dir)
 
 
 def load_model(mfile):
     model = torch.load(mfile).get('model')
-    model = model.cuda()
+    # model = model.cuda()
     model.eval()
     return model
 
 
 # sample or load a presaved batch so that all models are evaluated on the same samples
 fname = 'data_for_viz/{}/data-ncond={}-npred={}.th'.format(opt.task, opt.ncond, opt.npred)
+# print(fname)
 if os.path.isfile(fname) and False:
     print('loading previous batch')
     loaded = torch.load(fname)
@@ -58,8 +60,10 @@ else:
             os.system("mkdir -p " + os.path.dirname(fname))
     torch.save({'cond': cond, 'target': target, 'action': action}, fname)
 
-vcond = Variable(cond.cuda())
-vtarget = Variable(target.cuda())
+# vcond = Variable(cond.cuda())
+# vtarget = Variable(target.cuda())
+vcond = Variable(cond)
+vtarget = Variable(target)
 
 
 #################################
@@ -67,7 +71,7 @@ vtarget = Variable(target.cuda())
 #################################
 
 for mfile in glob.glob(opt.save_dir + '/*model=baseline*.model'):
-    print('loading {}'.format(mfile))
+    print('!!!baseline!!! loading {}'.format(mfile))
     model = load_model(mfile)
 
     # make folder to save visualizations
@@ -96,7 +100,7 @@ for mfile in glob.glob(opt.save_dir + '/*model=baseline*.model'):
 ###############################
 
 for mfile in glob.glob(opt.save_dir + '/*latent*.model'.format(opt.npred)):
-    print('loading {}'.format(mfile))
+    print('!!!latent!!! loading {}'.format(mfile))
     model = load_model(mfile)
 
     # make folder to save visualizations
@@ -110,7 +114,8 @@ for mfile in glob.glob(opt.save_dir + '/*latent*.model'.format(opt.npred)):
     print('sampling z vectors from training set')
     for k in range(n_batches):
         cond_, target_, action_ = dataloader.get_batch('train')
-        pred, g_pred, z = model(Variable(cond_.cuda()), Variable(target_.cuda()))
+        # pred, g_pred, z = model(Variable(cond_.cuda()), Variable(target_.cuda()))
+        pred, g_pred, z = model(Variable(cond_), Variable(target_))
         zlist.append(z.data.cpu())
         alist.append(action_)
     zlist = torch.stack(zlist).view(opt.batch_size * n_batches, -1)
@@ -146,7 +151,8 @@ for mfile in glob.glob(opt.save_dir + '/*latent*.model'.format(opt.npred)):
     for indx in range(nz):
         mov.append([])
         print(indx)
-        z = Variable(torch.zeros(opt.batch_size, 1, model.opt.n_latent).cuda())
+        # z = Variable(torch.zeros(opt.batch_size, 1, model.opt.n_latent).cuda())
+        z = Variable(torch.zeros(opt.batch_size, 1, model.opt.n_latent))
         z.data.copy_(zlist[indx].view(1, model.opt.n_latent).expand(z.size()))
         pred_z = model.decode(vcond, z)
         pred_z = pred_z.data.view(opt.batch_size, opt.npred, opt.nc, opt.height, opt.width)

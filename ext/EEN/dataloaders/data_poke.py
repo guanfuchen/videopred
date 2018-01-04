@@ -83,10 +83,13 @@ class ImageLoader(object):
         elif split == 'test':
             datalist = self.datalist_test
 
+        # print('split:', split)
+        # print('datalist:', datalist)
         cond_frames, pred_frames, actions = [], [], []
         # rolling
         id = 1
         while id <= self.arg.get("batchsize"):
+            # print('id:', id)
             sample = random.choice(datalist)
             sample_video = sample.get('frames')
             sample_actions = sample.get('actions')                                 
@@ -103,9 +106,12 @@ class ImageLoader(object):
         pred_frames = numpy.array(pred_frames, dtype='float') / 255.0
         actions = numpy.array(actions).squeeze()
         # return tensor
-        cond_frames_ts = torch.from_numpy(cond_frames).float().cuda()
-        pred_frames_ts = torch.from_numpy(pred_frames).float().cuda()
-        actions_ts = torch.from_numpy(actions).float().cuda()
+        # cond_frames_ts = torch.from_numpy(cond_frames).float().cuda()
+        # pred_frames_ts = torch.from_numpy(pred_frames).float().cuda()
+        # actions_ts = torch.from_numpy(actions).float().cuda()
+        cond_frames_ts = torch.from_numpy(cond_frames).float()
+        pred_frames_ts = torch.from_numpy(pred_frames).float()
+        actions_ts = torch.from_numpy(actions).float()
         return cond_frames_ts, pred_frames_ts, actions_ts
 
 
@@ -145,9 +151,12 @@ class ImageLoader(object):
         actions = numpy.array(actions).squeeze()
 
         # return tensor
-        cond_frames_ts = torch.from_numpy(cond_frames).cuda()
-        pred_frames_ts = torch.from_numpy(pred_frames).cuda()
-        actions_ts = torch.from_numpy(actions).cuda()
+        # cond_frames_ts = torch.from_numpy(cond_frames).cuda()
+        # pred_frames_ts = torch.from_numpy(pred_frames).cuda()
+        # actions_ts = torch.from_numpy(actions).cuda()
+        cond_frames_ts = torch.from_numpy(cond_frames)
+        pred_frames_ts = torch.from_numpy(pred_frames)
+        actions_ts = torch.from_numpy(actions)
         return cond_frames_ts, pred_frames_ts, actions_ts
 
     def plot_seq(self, cond, pred):
