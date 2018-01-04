@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 savedir="kitti_data"
 mkdir -p -- "$savedir"
 export http_proxy="http://127.0.0.1:8123"

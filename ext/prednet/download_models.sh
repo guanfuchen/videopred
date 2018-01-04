@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 savedir="model_data_keras2"
 mkdir -p -- "$savedir"
 export http_proxy="http://127.0.0.1:8123"
