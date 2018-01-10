@@ -53,7 +53,7 @@ class PredNet(Recurrent):
             Starting at this time step, the prediction from the previous time step will be treated as the "actual"
         data_format: 'channels_first' or 'channels_last'.
             It defaults to the `image_data_format` value found in your
-            Keras config file at `~/.keras/keras.json`.
+            Keras config file at `~/.keras/keras.json`. data_format数据格式，channels_first或者channels_last默认值为keras/keras.json中的data_format
 
     # References
         - [Deep predictive coding networks for video prediction and unsupervised learning](https://arxiv.org/abs/1605.08104)
@@ -114,6 +114,7 @@ class PredNet(Recurrent):
         self.extrap_start_time = extrap_start_time
 
         assert data_format in {'channels_last', 'channels_first'}, 'data_format must be in {channels_last, channels_first}'
+        # 数据格式channels_last或者channels_first
         self.data_format = data_format
         self.channel_axis = -3 if data_format == 'channels_first' else -1
         self.row_axis = -2 if data_format == 'channels_first' else -3
@@ -205,6 +206,7 @@ class PredNet(Recurrent):
             for c in ['i', 'f', 'c', 'o']:
                 # 在c是为LSTM_activation否则为LSTM_inner_activation，卷积层的输入为输出，为R_stack_sizes
                 act = self.LSTM_activation if c == 'c' else self.LSTM_inner_activation
+                # R_stack_sizes = (3, 48, 96, 192)，R_filt_sizes = (3, 3, 3, 3)
                 self.conv_layers[c].append(Conv2D(self.R_stack_sizes[l], self.R_filt_sizes[l], padding='same', activation=act, data_format=self.data_format))
 
             # 如果l为0即第一层时激活函数为relu
@@ -232,7 +234,8 @@ class PredNet(Recurrent):
                     if l < self.nb_layers - 1:
                         nb_channels += self.R_stack_sizes[l+1]
                 in_shape = (input_shape[0], nb_channels, nb_row // ds_factor, nb_col // ds_factor)
-                if self.data_format == 'channels_last': in_shape = (in_shape[0], in_shape[2], in_shape[3], in_shape[1])
+                if self.data_format == 'channels_last':
+                    in_shape = (in_shape[0], in_shape[2], in_shape[3], in_shape[1])
                 with K.name_scope('layer_' + c + '_' + str(l)):
                     self.conv_layers[c][l].build(in_shape)
                 self.trainable_weights += self.conv_layers[c][l].trainable_weights
@@ -319,6 +322,8 @@ class PredNet(Recurrent):
         return output, states
 
     def get_config(self):
+        # print('get_config----in----')
+        # 获取prednet网络配置参数
         config = {'stack_sizes': self.stack_sizes,
                   'R_stack_sizes': self.R_stack_sizes,
                   'A_filt_sizes': self.A_filt_sizes,
@@ -332,5 +337,6 @@ class PredNet(Recurrent):
                   'data_format': self.data_format,
                   'extrap_start_time': self.extrap_start_time,
                   'output_mode': self.output_mode}
+        # print('get_config----out----')
         base_config = super(PredNet, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))

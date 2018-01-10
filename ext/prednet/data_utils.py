@@ -7,50 +7,6 @@ from keras import backend as K
 from keras.preprocessing.image import Iterator
 
 from kitti_settings import *
-from videopred.dataloader.config import vpn_mnist_config
-
-
-def MovingMnistGenerator(Interator):
-    def __init__(self, mnist_type='train',
-                 batch_size=1, shuffle=True, seed=None,
-                 output_mode='error', sequence_start_mode='all', N_seq=None,
-                 data_format=K.image_data_format()):
-        self.nt = vpn_mnist_config.num_timestamps
-        self.sequences = np.load(vpn_mnist_config.data_dir).transpose((1, 0, 2, 3))
-        self.sequences = np.expand_dims(np.squeeze(self.sequences), 4)
-        if self.data_format == 'channels_first':
-            self.sequences = np.transpose(self.sequences, (0, 1, 4, 2, 3))
-        self.im_shape = self.sequences[0][0].shape
-        self.shuffled_idxs = np.arange(self.sequences.shape[0])
-        np.random.shuffle(self.shuffled_idxs)
-        self.sequences = self.sequences[self.shuffled_idxs]
-
-        if mnist_type == 'train':
-            self.X = self.sequences[:vpn_mnist_config.train_sequences_num]
-        elif mnist_type == 'val':
-            self.X = self.sequences[vpn_mnist_config.train_sequences_num:]
-
-        super(MovingMnistGenerator, self).__init__(len(self.shuffled_idxs), vpn_mnist_config.batch_size, shuffle, seed)
-
-    def next(self):
-        with self.lock:
-            index_array, current_index, current_batch_size = next(self.index_generator)
-        # 这种情况下变成(current_batch_size, nt, im_shape)
-        batch_x = np.zeros((current_batch_size, self.nt) + self.im_shape, np.float32)
-        # 获取当前时刻下的可能的index
-        for i, idx in enumerate(index_array):
-            idx = self.shuffled_idxs[idx]
-            batch_x[i] = self.preprocess(self.X[idx:idx + self.nt])
-        # 误差模式下，最后的输出结果应该是0
-        if self.output_mode == 'error':  # model outputs errors, so y should be zeros
-            batch_y = np.zeros(current_batch_size, np.float32)
-        # 预测模式下，最后的输出结果应该是最后一帧
-        elif self.output_mode == 'prediction':  # output actual pixels
-            batch_y = batch_x
-        return batch_x, batch_y
-
-    def preprocess(self, X):
-        return X.astype(np.float32) / 255
 
 # Data generator that creates sequences for input into PredNet.
 class SequenceGenerator(Iterator):
@@ -77,6 +33,7 @@ class SequenceGenerator(Iterator):
         if self.data_format == 'channels_first':
             self.X = np.transpose(self.X, (0, 3, 1, 2))
         self.im_shape = self.X[0].shape
+        # print('im_shape:', self.im_shape)
 
         # 允许任何可能的序列，来自任何帧
         if self.sequence_start_mode == 'all':  # allow for any possible sequence, starting from any frame
@@ -103,9 +60,9 @@ class SequenceGenerator(Iterator):
     def next(self):
         with self.lock:
             index_array, current_index, current_batch_size = next(self.index_generator)
-        print('index_array:', index_array)
-        print('current_index:', current_index)
-        print('current_batch_size:', current_batch_size)
+        # print('index_array:', index_array)
+        # print('current_index:', current_index)
+        # print('current_batch_size:', current_batch_size)
         # 这种情况下变成(current_batch_size, nt, im_shape)
         batch_x = np.zeros((current_batch_size, self.nt) + self.im_shape, np.float32)
         # 获取当前时刻下的可能的index
@@ -123,8 +80,10 @@ class SequenceGenerator(Iterator):
     def preprocess(self, X):
         return X.astype(np.float32) / 255
 
+    # 不进行batch，一次性完全load到内存中
     def create_all(self):
         X_all = np.zeros((self.N_sequences, self.nt) + self.im_shape, np.float32)
+        # 加载所有测试数据
         for i, idx in enumerate(self.possible_starts):
             X_all[i] = self.preprocess(self.X[idx:idx+self.nt])
         return X_all

@@ -1,3 +1,4 @@
+# coding=utf-8
 import torch
 import os, json
 from datetime import datetime
@@ -20,6 +21,7 @@ def one_hot(x, d):
 
 
 # Logging function
+# 日志函数
 def log(fname, s):
     if not os.path.isdir(os.path.dirname(fname)):
             os.system("mkdir -p " + os.path.dirname(fname))

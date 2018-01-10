@@ -107,8 +107,9 @@ class LatentResidualModel3Layer(nn.Module):
             # layer 3
             nn.ConvTranspose2d(opt.nfeature, opt.n_out, 4, 2, 1) 
         )
-        self.intype("gpu")
-        
+        # self.intype("gpu")
+        self.intype("cpu")
+
 
     # ultimate forward function
     def forward(self, input, target):
@@ -126,6 +127,8 @@ class LatentResidualModel3Layer(nn.Module):
         s = self.f_network_encoder(input)
         h = s + z_emb.view(self.opt.batch_size, self.opt.nfeature, 1, 1).expand(s.size())
         pred_f = self.f_network_decoder(h)
+        # print('pred_f:', pred_f)
+        # print('g_pred:', g_pred)
         return pred_f, g_pred, z
 
 
@@ -231,7 +234,8 @@ class VAE(nn.Module):
             # layer 3
             nn.ConvTranspose2d(opt.nfeature, opt.n_out, 4, 2, 1) 
         )
-        self.intype("gpu")
+        # self.intype("gpu")
+        self.intype("cpu")
 
     def encode(self, x):
         q = self.q_network_fc(self.q_network_conv(x).view(self.opt.batch_size, -1))
@@ -476,8 +480,9 @@ class BaselineModel3Layer(nn.Module):
             # layer 6
             nn.ConvTranspose2d(opt.nfeature, opt.n_out, 4, 2, 1) 
         )
-        self.intype("gpu")
-        
+        # self.intype("gpu")
+        self.intype("cpu")
+
 
     # ultimate forward function
     def forward(self, input):

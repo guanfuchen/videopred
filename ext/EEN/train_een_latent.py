@@ -26,7 +26,7 @@ opt = parser.parse_args()
 
 torch.manual_seed(opt.seed)
 torch.set_default_tensor_type('torch.FloatTensor')
-torch.cuda.set_device(opt.gpu)
+# torch.cuda.set_device(opt.gpu)
 
 # load data and get dataset-specific parameters
 data_config = utils.read_config('config.json').get(opt.task)
@@ -87,6 +87,7 @@ def test_epoch(nsteps):
         total_loss_g += loss_g.data[0]
 
 
+    # print('nsteps:', nsteps)
     return total_loss_f / nsteps, total_loss_g / nsteps
 
 def train(n_epochs):
@@ -101,6 +102,8 @@ def train(n_epochs):
         train_loss_f.append(train_loss_epoch_f)
         train_loss_g.append(train_loss_epoch_g)
         valid_loss_epoch_f, valid_loss_epoch_g = test_epoch(int(opt.epoch_size / 5))
+        # print('valid_loss_epoch_f:', valid_loss_epoch_f)
+        # print('valid_loss_epoch_g:', valid_loss_epoch_g)
         valid_loss_f.append(valid_loss_epoch_f)
         valid_loss_g.append(valid_loss_epoch_g)
 
@@ -111,9 +114,9 @@ def train(n_epochs):
             torch.save({ 'i': i, 'model': model, 'train_loss_f': train_loss_f, 'train_loss_g': train_loss_g, 'valid_loss_f': valid_loss_f, 'valid_loss_g': valid_loss_g},
                        opt.model_filename + '.model')
             torch.save(optimizer, opt.model_filename + '.optim')
-            model.intype("gpu")
+            # model.intype("gpu")
 
-        log_string = ('iter: {:d}, train_loss_f: {:0.6f}, train_loss_g: {:0.6f}, valid_loss_f: {:0.6f}, valid_loss_g: {:0.6f}, best_valid_loss_f: {:0.6f}, lr: {:0.5f}').format(
+        log_string = 'iter: {:d}, train_loss_f: {:0.6f}, train_loss_g: {:0.6f}, valid_loss_f: {:0.6f}, valid_loss_g: {:0.6f}, best_valid_loss_f: {:0.6f}, lr: {:0.5f}'.format(
                       (i+1)*opt.epoch_size, train_loss_f[-1], train_loss_g[-1], valid_loss_f[-1], valid_loss_g[-1], best_valid_loss_f, opt.lrt)
         print(log_string)
         utils.log(opt.model_filename + '.log', log_string)
@@ -138,11 +141,15 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), opt.lrt)
 
     if opt.loss == 'l1':
-        criterion_f = nn.L1Loss().cuda()
-        criterion_g = nn.L1Loss().cuda()
+        # criterion_f = nn.L1Loss().cuda()
+        # criterion_g = nn.L1Loss().cuda()
+        criterion_f = nn.L1Loss()
+        criterion_g = nn.L1Loss()
     elif opt.loss == 'l2':
-        criterion_f = nn.MSELoss().cuda()
-        criterion_g = nn.MSELoss().cuda()
+        # criterion_f = nn.MSELoss().cuda()
+        # criterion_g = nn.MSELoss().cuda()
+        criterion_f = nn.MSELoss()
+        criterion_g = nn.MSELoss()
     print('training...')
     utils.log(opt.model_filename + '.log', '[training]')
     train(500)

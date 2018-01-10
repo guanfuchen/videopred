@@ -86,10 +86,10 @@ for mfile in glob.glob(opt.save_dir + '/*model=baseline*.model'):
     target = target.view(opt.batch_size, opt.npred, opt.nc, opt.height, opt.width)
     # save each prediction along with the ground truth
     for b in range(opt.batch_size):
-        img = dataloader.plot_seq(cond[b].cpu().unsqueeze(0), pred[b].cpu().unsqueeze(0))
+        img = dataloader.plot_seq(cond[b].cpu().unsqueeze(0), pred[b].cpu())
         fname = '{}/ep{}_baseline.png'.format(save_dir, b)
         torchvision.utils.save_image(img, fname)
-        img = dataloader.plot_seq(cond[b].cpu().unsqueeze(0), target[b].cpu().unsqueeze(0))
+        img = dataloader.plot_seq(cond[b].cpu().unsqueeze(0), target[b].cpu())
         fname = '{}/ep{}_truth.png'.format(save_dir, b)
         torchvision.utils.save_image(img, fname)
 
@@ -110,7 +110,8 @@ for mfile in glob.glob(opt.save_dir + '/*latent*.model'.format(opt.npred)):
 
     # extract some z vectors from the training set
     zlist, alist = [], []
-    n_batches = 50
+    # n_batches = 50
+    n_batches = 1
     print('sampling z vectors from training set')
     for k in range(n_batches):
         cond_, target_, action_ = dataloader.get_batch('train')
@@ -136,28 +137,29 @@ for mfile in glob.glob(opt.save_dir + '/*latent*.model'.format(opt.npred)):
     err = err.data.view(opt.batch_size, opt.npred, opt.nc, opt.height, opt.width)
 
     for b in range(opt.batch_size):
-        img = dataloader.plot_seq(cond[b].cpu().unsqueeze(0), pred[b].cpu().unsqueeze(0))
+        img = dataloader.plot_seq(cond[b].cpu().unsqueeze(0), pred[b].cpu())
         fname = '{}/ep{}'.format(save_dir, b)
         if not os.path.isdir(fname):
             os.system('mkdir -p ' + fname)
         torchvision.utils.save_image(img, '{}/z_true.png'.format(fname))
-        img = dataloader.plot_seq(cond[b].cpu().unsqueeze(0), err[b].cpu().unsqueeze(0))
+        img = dataloader.plot_seq(cond[b].cpu().unsqueeze(0), err[b].cpu())
         torchvision.utils.save_image(img, '{}/residual.png'.format(fname))
 
 
     # compute predictions for different z vectors, each prediction has its own folder
-    nz = 50
+    # nz = 50
+    nz = 1
     mov = []
     for indx in range(nz):
         mov.append([])
-        print(indx)
+        print('indx:', indx)
         # z = Variable(torch.zeros(opt.batch_size, 1, model.opt.n_latent).cuda())
         z = Variable(torch.zeros(opt.batch_size, 1, model.opt.n_latent))
         z.data.copy_(zlist[indx].view(1, model.opt.n_latent).expand(z.size()))
         pred_z = model.decode(vcond, z)
         pred_z = pred_z.data.view(opt.batch_size, opt.npred, opt.nc, opt.height, opt.width)
         for b in range(opt.batch_size):
-            img = dataloader.plot_seq(cond[b].cpu().unsqueeze(0), pred_z[b].cpu().unsqueeze(0))
+            img = dataloader.plot_seq(cond[b].cpu().unsqueeze(0), pred_z[b].cpu())
             fname = '{}/ep{}'.format(save_dir, b)
             torchvision.utils.save_image(img, '{}/z{}.png'.format(fname, indx))
             mov[-1].append(img)
@@ -169,4 +171,5 @@ for mfile in glob.glob(opt.save_dir + '/*latent*.model'.format(opt.npred)):
     mov=torch.stack(mov)
     mov=mov.permute(1, 0, 3, 4, 2).cpu().clone()
     for b in range(opt.batch_size):
+        print('{}/movie{}.mp4'.format(save_dir, b))
         imageio.mimwrite('{}/movie{}.mp4'.format(save_dir, b) , mov[b].cpu().numpy() , fps = 5)

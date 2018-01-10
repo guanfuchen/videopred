@@ -66,13 +66,15 @@ class ImageLoader(object):
         cond_frames = video[start_pos]
         pred_frames = video[start_pos+1]
         actions = actions[start_pos]
-        return cond_frames, pred_frames, actions
+        # return cond_frames, pred_frames, actions
+        return cond_frames, pred_frames, None
 
     def _iterate_time(self, video, start_pos, actions, num_cond, num_pred):
         cond_frames = video[start_pos]
         pred_frames = video[start_pos+1]
         actions = actions[start_pos]
-        return cond_frames, pred_frames, actions
+        # return cond_frames, pred_frames, actions
+        return cond_frames, pred_frames, None
 
         
     def get_batch(self, split):
@@ -95,7 +97,7 @@ class ImageLoader(object):
             sample_actions = sample.get('actions')                                 
             selected_cond_frames, selected_pred_frames, selected_actions = self._sample_time(
                     sample_video, sample_actions, self.ncond, self.npred)
-            assert(len(selected_actions) > 0)
+            # assert(len(selected_actions) > 0)
             cond_frames.append(selected_cond_frames)
             pred_frames.append(selected_pred_frames)
             actions.append(selected_actions)
@@ -111,8 +113,12 @@ class ImageLoader(object):
         # actions_ts = torch.from_numpy(actions).float().cuda()
         cond_frames_ts = torch.from_numpy(cond_frames).float()
         pred_frames_ts = torch.from_numpy(pred_frames).float()
-        actions_ts = torch.from_numpy(actions).float()
-        return cond_frames_ts, pred_frames_ts, actions_ts
+        # actions_ts = torch.from_numpy(actions).float()
+        # print('cond_frames_ts.size():', cond_frames_ts.size())
+        # print('pred_frames_ts.size():', pred_frames_ts.size())
+        # print('actions_ts.size():', actions_ts.size())
+        # return cond_frames_ts, pred_frames_ts, actions_ts
+        return cond_frames_ts, pred_frames_ts, None
 
 
 
@@ -157,9 +163,12 @@ class ImageLoader(object):
         cond_frames_ts = torch.from_numpy(cond_frames)
         pred_frames_ts = torch.from_numpy(pred_frames)
         actions_ts = torch.from_numpy(actions)
-        return cond_frames_ts, pred_frames_ts, actions_ts
+        # return cond_frames_ts, pred_frames_ts, actions_ts
+        return cond_frames_ts, pred_frames_ts, None
 
     def plot_seq(self, cond, pred):
+        # print('cond.size():', cond.size())
+        # print('pred.size():', pred.size())
         cond_pred = torch.cat((cond, pred), 1)
         cond_pred = cond_pred.view(-1, self.nc, self.height, self.width)
         grid = torchvision.utils.make_grid(cond_pred, self.ncond+self.npred, pad_value=1)

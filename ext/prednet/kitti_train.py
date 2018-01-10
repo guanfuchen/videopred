@@ -26,20 +26,29 @@ save_model = True  # if weights will be saved
 # 存储的权重文件
 weights_file = os.path.join(WEIGHTS_DIR, 'prednet_kitti_weights.hdf5')  # where weights will be saved
 json_file = os.path.join(WEIGHTS_DIR, 'prednet_kitti_model.json')
+# weights_file = os.path.join(WEIGHTS_DIR, 'prednet_kitti_weights-extrapfinetuned.hdf5')  # where weights will be saved
+# json_file = os.path.join(WEIGHTS_DIR, 'prednet_kitti_model-extrapfinetuned.json')
 
 # Data files
 # 数据文件，包括训练的文件和源以及校准的
-train_file = os.path.join(DATA_DIR, 'X_train.hkl')
-train_sources = os.path.join(DATA_DIR, 'sources_train.hkl')
-val_file = os.path.join(DATA_DIR, 'X_val.hkl')
-val_sources = os.path.join(DATA_DIR, 'sources_val.hkl')
+train_file = os.path.join(DATA_DIR, 'gd_yu_X_train.hkl')
+train_sources = os.path.join(DATA_DIR, 'gd_yu_sources_train.hkl')
+val_file = os.path.join(DATA_DIR, 'gd_yu_X_val.hkl')
+val_sources = os.path.join(DATA_DIR, 'gd_yu_sources_val.hkl')
+# train_file = os.path.join(DATA_DIR, 'X_train.hkl')
+# train_sources = os.path.join(DATA_DIR, 'sources_train.hkl')
+# val_file = os.path.join(DATA_DIR, 'X_val.hkl')
+# val_sources = os.path.join(DATA_DIR, 'sources_val.hkl')
 
 # Training parameters
 # 训练参数
 nb_epoch = 150
-batch_size = 1
+# nb_epoch = 1
+batch_size = 4
 samples_per_epoch = 500
+# samples_per_epoch = 5
 N_seq_val = 100  # number of sequences to use for validation
+# N_seq_val = 5  # number of sequences to use for validation
 
 # Model parameters
 # 输入图像的维度为3,128,160，并且判断是否channels_first
@@ -69,7 +78,7 @@ inputs = Input(shape=(nt,) + input_shape)
 # 计算预测网络的误差，误差维度是batch_size，nt，nb_layers
 errors = prednet(inputs)  # errors will be (batch_size, nt, nb_layers)
 # 通过层计算权重的误差
-errors_by_time = TimeDistributed(Dense(1, weights=[layer_loss_weights, np.zeros(1)], trainable=False), trainable=False)(errors)  # calculate weighted error by layer
+errors_by_time = TimeDistributed(Dense(1, trainable=False), weights=[layer_loss_weights, np.zeros(1)], trainable=False)(errors)  # calculate weighted error by layer
 # 计算batch_size，nt的误差，级每一个时间的误差
 errors_by_time = Flatten()(errors_by_time)  # will be (batch_size, nt)
 # 对每一个误差进行权重赋值，这里取第一时间
@@ -87,7 +96,9 @@ lr_schedule = lambda epoch: 0.001 if epoch < 75 else 0.0001    # start with lr o
 callbacks = [LearningRateScheduler(lr_schedule)]
 # 如果存储模型则增加该模块
 if save_model:
-    if not os.path.exists(WEIGHTS_DIR): os.mkdir(WEIGHTS_DIR)
+    if not os.path.exists(WEIGHTS_DIR):
+        os.mkdir(WEIGHTS_DIR)
+    # weights_file模型权重的存储路径
     callbacks.append(ModelCheckpoint(filepath=weights_file, monitor='val_loss', save_best_only=True))
 
 # 模型设置训练生成模块和校准生成模块，同时callbacks
@@ -96,6 +107,7 @@ history = model.fit_generator(train_generator, samples_per_epoch / batch_size, n
 
 # 存储模型文件对应的string
 if save_model:
+    # 将keras模型转换为json
     json_string = model.to_json()
     with open(json_file, "w") as f:
         f.write(json_string)
