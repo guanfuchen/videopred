@@ -45,7 +45,9 @@ class SequenceGenerator(Iterator):
                 if self.sources[curr_location] == self.sources[curr_location + self.nt - 1]:
                     possible_starts.append(curr_location)
                     curr_location += self.nt
+                    # print('same')
                 else:
+                    # print('different')
                     curr_location += 1
             self.possible_starts = possible_starts
 
@@ -93,4 +95,11 @@ if __name__ == '__main__':
     train_sources = os.path.join(DATA_DIR, 'sources_train.hkl')
     val_file = os.path.join(DATA_DIR, 'X_val.hkl')
     val_sources = os.path.join(DATA_DIR, 'sources_val.hkl')
-    train_generator = SequenceGenerator(train_file, train_sources, 10, batch_size=1, shuffle=True)
+    train_generator = SequenceGenerator(train_file, train_sources, 10, batch_size=1, shuffle=True, sequence_start_mode='all')
+
+
+    train_file = os.path.join(DATA_DIR, 'facebook_segmpred_X_train.hkl')
+    train_sources = os.path.join(DATA_DIR, 'facebook_segmpred_sources_train.hkl')
+    val_file = os.path.join(DATA_DIR, 'facebook_segmpred_X_val.hkl')
+    val_sources = os.path.join(DATA_DIR, 'facebook_segmpred_sources_val.hkl')
+    train_generator = SequenceGenerator(train_file, train_sources, 5, batch_size=1, shuffle=True, sequence_start_mode='unique')

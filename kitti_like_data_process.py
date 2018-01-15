@@ -12,6 +12,8 @@ if __name__ == '__main__':
     X_train = []
     sources_val = []
     X_val = []
+    # 间隔一定时间进行预测，防止间隔太少相似性过大
+    frame_interval = 3
     HOME_PATH = os.path.expanduser('~')
     valid_dirs = glob.glob(os.path.join(HOME_PATH, 'GitHub/Quick/HPEC/可行区域识别/工大拍摄原始数据/DJI_000[0-9]_160x128'))
     train_rate = 0.7
@@ -29,14 +31,18 @@ if __name__ == '__main__':
         split_index = int(valid_image_files_len*train_rate)
         train_image_files = valid_image_files[:split_index]
         val_image_files = valid_image_files[split_index:]
+
+        train_image_files = train_image_files[::frame_interval]
+        val_image_files = val_image_files[::frame_interval]
+
         for train_image_file in train_image_files:
-            # print(train_image_file)
+            print(train_image_file)
             train_image_data = misc.imread(train_image_file)
             # print(train_image_data.shape)
             X_train.append(train_image_data)
             sources_train.append(valid_dir_name)
         for val_image_file in val_image_files:
-            # print(val_image_file)
+            print(val_image_file)
             val_image_data = misc.imread(val_image_file)
             # print(val_image_data.shape)
             X_val.append(val_image_data)

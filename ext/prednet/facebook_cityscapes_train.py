@@ -24,8 +24,8 @@ from kitti_settings import *
 # 是否存储模型权重
 save_model = True  # if weights will be saved
 # 存储的权重文件
-weights_file = os.path.join(WEIGHTS_DIR, 'prednet_gd_yu_weights.hdf5')  # where weights will be saved
-json_file = os.path.join(WEIGHTS_DIR, 'prednet_gd_yu_model.json')
+weights_file = os.path.join(WEIGHTS_DIR, 'prednet_facebook_segmpred_weights.hdf5')  # where weights will be saved
+json_file = os.path.join(WEIGHTS_DIR, 'prednet_facebook_segmpred_model.json')
 # weights_file = os.path.join(WEIGHTS_DIR, 'prednet_kitti_weights.hdf5')  # where weights will be saved
 # json_file = os.path.join(WEIGHTS_DIR, 'prednet_kitti_model.json')
 # weights_file = os.path.join(WEIGHTS_DIR, 'prednet_kitti_weights-extrapfinetuned.hdf5')  # where weights will be saved
@@ -33,10 +33,10 @@ json_file = os.path.join(WEIGHTS_DIR, 'prednet_gd_yu_model.json')
 
 # Data files
 # 数据文件，包括训练的文件和源以及校准的
-train_file = os.path.join(DATA_DIR, 'gd_yu_X_train.hkl')
-train_sources = os.path.join(DATA_DIR, 'gd_yu_sources_train.hkl')
-val_file = os.path.join(DATA_DIR, 'gd_yu_X_val.hkl')
-val_sources = os.path.join(DATA_DIR, 'gd_yu_sources_val.hkl')
+train_file = os.path.join(DATA_DIR, 'facebook_segmpred_X_train.hkl')
+train_sources = os.path.join(DATA_DIR, 'facebook_segmpred_sources_train.hkl')
+val_file = os.path.join(DATA_DIR, 'facebook_segmpred_X_val.hkl')
+val_sources = os.path.join(DATA_DIR, 'facebook_segmpred_sources_val.hkl')
 # train_file = os.path.join(DATA_DIR, 'X_train.hkl')
 # train_sources = os.path.join(DATA_DIR, 'sources_train.hkl')
 # val_file = os.path.join(DATA_DIR, 'X_val.hkl')
@@ -53,8 +53,8 @@ N_seq_val = 100  # number of sequences to use for validation
 # N_seq_val = 5  # number of sequences to use for validation
 
 # Model parameters
-# 输入图像的维度为3,128,160，并且判断是否channels_first
-n_channels, im_height, im_width = (3, 128, 160)
+# 输入图像的维度为3,64,64，并且判断是否channels_first
+n_channels, im_height, im_width = (3, 64, 64)
 input_shape = (n_channels, im_height, im_width) if K.image_data_format() == 'channels_first' else (im_height, im_width, n_channels)
 # stack sizes为
 stack_sizes = (n_channels, 48, 96, 192)
@@ -67,7 +67,7 @@ R_filt_sizes = (3, 3, 3, 3)
 layer_loss_weights = np.array([1., 0., 0., 0.])  # weighting for each layer in final loss; "L_0" model:  [1, 0, 0, 0], "L_all": [1, 0.1, 0.1, 0.1]
 layer_loss_weights = np.expand_dims(layer_loss_weights, 1)
 # 在训练期间输入的时间序列的timesteps，并且对于所有timesteps的数据都是相同的除了第一步
-nt = 10  # number of timesteps used for sequences in training
+nt = 5  # number of timesteps used for sequences in training
 time_loss_weights = 1./ (nt - 1) * np.ones((nt,1))  # equally weight all timesteps except the first
 time_loss_weights[0] = 0
 
@@ -93,8 +93,8 @@ if os.path.exists(weights_file):
     model.load_weights(weights_file)
 
 # 训练数据生成器和校准数据生成器
-train_generator = SequenceGenerator(train_file, train_sources, nt, batch_size=batch_size, shuffle=True)
-val_generator = SequenceGenerator(val_file, val_sources, nt, batch_size=batch_size, N_seq=N_seq_val)
+train_generator = SequenceGenerator(train_file, train_sources, nt, batch_size=batch_size, shuffle=True, sequence_start_mode='unique')
+val_generator = SequenceGenerator(val_file, val_sources, nt, batch_size=batch_size, N_seq=N_seq_val, sequence_start_mode='unique')
 
 # 学习率lr在75周期后从0.001下降到0.0001
 lr_schedule = lambda epoch: 0.001 if epoch < 75 else 0.0001    # start with lr of 0.001 and then drop to 0.0001 after 75 epochs

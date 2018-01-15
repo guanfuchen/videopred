@@ -23,17 +23,17 @@ from kitti_settings import *
 
 n_plot = 40
 batch_size = 10
-nt = 10
+nt = 5
 
 # 相关的weights，json的文件
-weights_file = os.path.join(WEIGHTS_DIR, 'prednet_gd_yu_weights.hdf5')
-json_file = os.path.join(WEIGHTS_DIR, 'prednet_gd_yu_model.json')
+weights_file = os.path.join(WEIGHTS_DIR, 'prednet_facebook_segmpred_weights.hdf5')
+json_file = os.path.join(WEIGHTS_DIR, 'prednet_facebook_segmpred_model.json')
 # weights_file = os.path.join(WEIGHTS_DIR, 'prednet_kitti_weights.hdf5')
 # json_file = os.path.join(WEIGHTS_DIR, 'prednet_kitti_model.json')
 # weights_file = os.path.join(WEIGHTS_DIR, 'prednet_kitti_weights-extrapfinetuned.hdf5')  # where weights will be saved
 # json_file = os.path.join(WEIGHTS_DIR, 'prednet_kitti_model-extrapfinetuned.json')
-test_file = os.path.join(DATA_DIR, 'gd_yu_X_test.hkl')
-test_sources = os.path.join(DATA_DIR, 'gd_yu_sources_test.hkl')
+test_file = os.path.join(DATA_DIR, 'facebook_segmpred_X_test.hkl')
+test_sources = os.path.join(DATA_DIR, 'facebook_segmpred_sources_test.hkl')
 
 # Load trained model
 # 加载模型的json文件
@@ -57,9 +57,14 @@ data_format = layer_config['data_format'] if 'data_format' in layer_config else 
 # 将网络中部分修改参数加载重构为PredNet网络，keras中具有get_config和get_weights等方法
 test_prednet = PredNet(weights=train_model.layers[1].get_weights(), **layer_config)
 # 输入层的shape为不包括batch的batch_input_shape从第一列之后的所有
-input_shape = list(train_model.layers[0].batch_input_shape[1:])
+# input_shape = list(train_model.layers[0].batch_input_shape[1:])
 # 输入数据为nt，总共有10帧，来预测将来的一帧
-input_shape[0] = nt
+# input_shape[0] = nt
+# print('input_shape:', input_shape)
+test_generator = SequenceGenerator(test_file, test_sources, nt, sequence_start_mode='unique', data_format=data_format)
+X_test = test_generator.create_all()
+input_shape = X_test.shape[1:]
+# print('input_shape:', input_shape)
 # 构建输入层
 inputs = Input(shape=tuple(input_shape))
 # 将输入层输入到prednet网络中测试输出
@@ -68,8 +73,8 @@ predictions = test_prednet(inputs)
 test_model = Model(inputs=inputs, outputs=predictions)
 
 # 测试评估数据生成器
-test_generator = SequenceGenerator(test_file, test_sources, nt, sequence_start_mode='unique', data_format=data_format)
-X_test = test_generator.create_all()
+# test_generator = SequenceGenerator(test_file, test_sources, nt, sequence_start_mode='unique', data_format=data_format)
+# X_test = test_generator.create_all()
 # 预测模型时参照batch_size，一个批次的进行load然后predict
 X_hat = test_model.predict(X_test, batch_size)
 # 这里模型的默认通道均在最后一位
