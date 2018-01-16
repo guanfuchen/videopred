@@ -36,14 +36,21 @@ fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v')
 def generate_bouncing_ball_sample(batch_size, seq_length, shape, num_balls):
   dat = np.zeros((batch_size, seq_length, shape, shape, 3))
   for i in xrange(batch_size):
-    dat[i, :, :, :, :] = b.bounce_vec(32, num_balls, seq_length)
-  return dat 
+    dat[i, :, :, :, :] = b.bounce_vec(256, num_balls, seq_length)
+  return dat
+
+def generate_facebook_segm_sample(batch_size):
+  dat = np.zeros((batch_size, 7, 256, 128, 3))
+  for i in xrange(batch_size):
+    # dat[i, :, :, :, :] =
+    pass
+  return dat
 
 def train():
   """Train ring_net for a number of steps."""
   with tf.Graph().as_default():
     # make inputs
-    x = tf.placeholder(tf.float32, [FLAGS.batch_size, FLAGS.seq_length, 32, 32, 3])
+    x = tf.placeholder(tf.float32, [FLAGS.batch_size, FLAGS.seq_length, 256, 256, 3])
 
     # possible dropout inside
     keep_prob = tf.placeholder("float")
@@ -111,7 +118,7 @@ def train():
     summary_writer = tf.summary.FileWriter(FLAGS.train_dir, graph_def=graph_def)
 
     for step in xrange(FLAGS.max_step):
-      dat = generate_bouncing_ball_sample(FLAGS.batch_size, FLAGS.seq_length, 32, FLAGS.num_balls)
+      dat = generate_bouncing_ball_sample(FLAGS.batch_size, FLAGS.seq_length, 256, FLAGS.num_balls)
       t = time.time()
       _, loss_r = sess.run([train_op, loss],feed_dict={x:dat, keep_prob:FLAGS.keep_prob})
       elapsed = time.time() - t

@@ -5,10 +5,12 @@ import os
 
 from videopred.modelloader.convlstm import BasicConvLSTMCell
 from videopred.dataloader.vpn_minst import GenerateMovingMnistData
+from videopred.dataloader.facebook_segmpred import GenerateFaceBookSegmPredData
 from videopred.dataloader.config import vpn_mnist_config
+from videopred.dataloader.config import facebook_segmpred_config
 
 FLAGS = tf.app.flags.FLAGS
-tf.app.flags.DEFINE_integer('batch_size', vpn_mnist_config.batch_size, """the training batch size""")
+tf.app.flags.DEFINE_integer('batch_size', facebook_segmpred_config.batch_size, """the training batch size""")
 tf.app.flags.DEFINE_integer('seq_length', 10, """the seq length""")
 tf.app.flags.DEFINE_integer('seq_start', 5, """the seq start""")
 tf.app.flags.DEFINE_float('lr', .001, """training learning rate""")
@@ -70,22 +72,17 @@ basic_lstm_network_template = tf.make_template('basic_lstm_network', basic_lstm_
 
 def train():
     with tf.Graph().as_default():
-        #  a = tf.constant(5.0)
-        #  b = tf.constant(6.0)
-        #  print(sess.run(a+b))
-        #  shape(dataset_batch) = batch_size*time*height*width*channel
-        #  batch_size = 4
-        time = FLAGS.seq_length
-        height = 64
-        width = 64
-        channel = 1
-        x = tf.placeholder(dtype=tf.float32, shape=(FLAGS.batch_size, time, height, width, channel))
+        data_generate = GenerateFaceBookSegmPredData()
+        # data_generate = GenerateMovingMnistData()
+        FLAGS.seq_length = data_generate.num_timestamps
+        FLAGS.seq_start = data_generate.num_timestamps - 1
+        x = tf.placeholder(dtype=tf.float32, shape=(FLAGS.batch_size, FLAGS.seq_length, data_generate.height, data_generate.width, data_generate.channel))
         print(x.shape)
         x_dropout = tf.nn.dropout(x, keep_prob=0.5)
         hidden = None
         x_unwrap = []
         for i in range(FLAGS.seq_length):
-            #  print i
+            # print i
             if i < FLAGS.seq_start:
                 outputs, hidden = basic_lstm_network_template(x_dropout[:, i, :, :, :], hidden)
             else:
@@ -108,13 +105,12 @@ def train():
         graph_def = sess.graph.as_graph_def(add_shapes=True)
         summary_writer = tf.summary.FileWriter(FLAGS.train_dir, graph_def=graph_def)
 
-        data_generate = GenerateMovingMnistData()
         for step in range(FLAGS.max_step):
             dataset_batch = data_generate.next_batch()
-            dataset_batch = dataset_batch / 255.0
+            dataset_batch = dataset_batch / 19.0
             #  print(dataset_batch.shape)
             train_op_r, loss_r = sess.run([train_op, loss], feed_dict={x:dataset_batch})
-            print(loss_r)
+            # print(loss_r)
             if step%1000==0 and step != 0:
                 summary_str = sess.run(summary_op, feed_dict={x:dataset_batch})
                 summary_writer.add_summary(summary_str, step)

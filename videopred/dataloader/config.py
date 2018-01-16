@@ -20,6 +20,15 @@ class vpn_mnist_config:
     num_timestamps = 10
 
 
+class facebook_segmpred_config:
+    def __init__(self):
+        pass
+    data_dir = os.path.join(HOME_PATH, 'Data/facebook_segmpred_seq.hkl')
+    train_sequences_num = 300
+    batch_size = 4
+    # num_timestamps = 5
+
+
 class kitti_data_config:
     def __init__(self):
         pass

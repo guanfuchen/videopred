@@ -39,6 +39,18 @@ def basic_network(inputs, hidden, lstm=True):
   conv7 = transpose_conv_layer(conv6, 3, 1, 8, "decode_7", nonlinearity=tf.nn.elu)
   # x_1 
   x_1 = transpose_conv_layer(conv7, 3, 2, 3, "decode_8") # set activation to linear
+  # print('inputs:', inputs)
+  # print('conv1:', conv1)
+  # print('conv2:', conv2)
+  # print('conv3:', conv3)
+  # print('conv4:', conv4)
+  # print('y_1:', y_1)
+  # print('hidden:', hidden)
+  # print('conv5:', conv5)
+  # print('conv6:', conv6)
+  # print('conv7:', conv7)
+  # print('x_1:', x_1)
+  # exit(0)
 
   return x_1, hidden
 
@@ -91,7 +103,3 @@ def residual_u_network(inputs, hiddens=None, start_filter_size=16, nr_downsample
 
 # make template for reuse
 residual_u_network_template = tf.make_template('residual_u_network', residual_u_network)
-
-
-    
-
