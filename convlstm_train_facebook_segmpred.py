@@ -8,6 +8,7 @@ from videopred.dataloader.vpn_minst import GenerateMovingMnistData
 from videopred.dataloader.facebook_segmpred import GenerateFaceBookSegmPredData
 from videopred.dataloader.config import vpn_mnist_config
 from videopred.dataloader.config import facebook_segmpred_config
+from videopred.modelloader.convlstm.layer_def import *
 
 FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_integer('batch_size', facebook_segmpred_config.batch_size, """the training batch size""")
@@ -70,6 +71,54 @@ def basic_lstm_network(inputs, hidden):
 
 basic_lstm_network_template = tf.make_template('basic_lstm_network', basic_lstm_network)
 
+
+def residual_u_network(inputs, hiddens=None, start_filter_size=16, nr_downsamples=3, nr_residual_per_downsample=1, nonlinearity="relu"):
+
+  # set filter size (after each down sample the filter size is doubled)
+  filter_size = start_filter_size
+
+  # set nonlinearity
+  nonlinearity = set_nonlinearity(nonlinearity)
+
+  # make list of hiddens if None
+  if hiddens is None:
+    hiddens = (2*nr_downsamples -1)*[None]
+
+  # store for u network connections and new hiddens
+  a = []
+  hidden_out = []
+
+  # encoding piece
+  x_i = inputs
+  for i in xrange(nr_downsamples):
+    x_i = res_block(x_i, filter_size=filter_size, nonlinearity=nonlinearity, stride=2, name="res_encode_" + str(i) + "_block_0", begin_nonlinearity=False)
+    for j in xrange(nr_residual_per_downsample - 1):
+      x_i = res_block(x_i, filter_size=filter_size, nonlinearity=nonlinearity, name="res_encode_" + str(i) + "_block_" + str(j+1), begin_nonlinearity=True)
+    x_i, hidden_new = res_block_lstm(x_i, hiddens[i], name="res_encode_lstm_" + str(i))
+    a.append(x_i)
+    hidden_out.append(hidden_new)
+    filter_size = filter_size * 2
+
+  # pop off last element to a.
+  a.pop()
+  filter_size = filter_size / 2
+
+  # decoding piece
+  for i in xrange(nr_downsamples - 1):
+    filter_size = filter_size / 2
+    x_i = transpose_conv_layer(x_i, 4, 2, filter_size, "up_conv_" + str(i))
+    for j in xrange(nr_residual_per_downsample):
+      x_i = res_block(x_i, a=a.pop(), filter_size=filter_size, nonlinearity=nonlinearity, name="res_decode_" + str(i) + "_block_" + str(j+1), begin_nonlinearity=True)
+    x_i, hidden_new = res_block_lstm(x_i, hiddens[i + nr_downsamples], name="res_decode_lstm_" + str(i))
+    hidden_out.append(hidden_new)
+
+  x_i = transpose_conv_layer(x_i, 4, 2, int(inputs.get_shape()[-1]), "up_conv_" + str(nr_downsamples-1))
+
+  return x_i, hidden_out
+
+# make template for reuse
+residual_u_network_template = tf.make_template('residual_u_network', residual_u_network)
+
 def train():
     with tf.Graph().as_default():
         data_generate = GenerateFaceBookSegmPredData()
@@ -77,7 +126,7 @@ def train():
         FLAGS.seq_length = data_generate.num_timestamps
         FLAGS.seq_start = data_generate.num_timestamps - 1
         x = tf.placeholder(dtype=tf.float32, shape=(FLAGS.batch_size, FLAGS.seq_length, data_generate.height, data_generate.width, data_generate.channel))
-        print(x.shape)
+        # print(x.shape)
         x_dropout = tf.nn.dropout(x, keep_prob=0.5)
         hidden = None
         x_unwrap = []
@@ -85,8 +134,10 @@ def train():
             # print i
             if i < FLAGS.seq_start:
                 outputs, hidden = basic_lstm_network_template(x_dropout[:, i, :, :, :], hidden)
+                # outputs, hidden = residual_u_network_template(x[:, i, :, :, :], hidden)
             else:
                 outputs, hidden = basic_lstm_network_template(outputs, hidden)
+                # outputs, hidden = residual_u_network_template(outputs, hidden)
             x_unwrap.append(outputs)
         x_unwrap = tf.stack(x_unwrap)
         x_unwrap = tf.transpose(x_unwrap, (1,0,2,3,4))
@@ -105,18 +156,27 @@ def train():
         graph_def = sess.graph.as_graph_def(add_shapes=True)
         summary_writer = tf.summary.FileWriter(FLAGS.train_dir, graph_def=graph_def)
 
+        loss_sum = 0.0
+        step_num = 100
+        save_num = 5000
+
         for step in range(FLAGS.max_step):
             dataset_batch = data_generate.next_batch()
             dataset_batch = dataset_batch / 19.0
             #  print(dataset_batch.shape)
             train_op_r, loss_r = sess.run([train_op, loss], feed_dict={x:dataset_batch})
             # print(loss_r)
-            if step%1000==0 and step != 0:
+            loss_sum += loss_r
+            if step%step_num==0 and step != 0:
+                loss_avg = loss_sum / (step_num+1)
+                loss_sum = 0.0
                 summary_str = sess.run(summary_op, feed_dict={x:dataset_batch})
                 summary_writer.add_summary(summary_str, step)
+                # print(loss_r)
+                print('loss_avg:', loss_avg)
+            elif step%save_num==0 and step != 0:
                 checkpoint_path = os.path.join(FLAGS.train_dir, 'model.ckpt')
-                saver.save(sess, checkpoint_path, global_step=step) 
-                print(loss_r)
+                saver.save(sess, checkpoint_path, global_step=step)
 
 
 def main(argv=None):
