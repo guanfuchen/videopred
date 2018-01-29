@@ -7,7 +7,7 @@ from scipy import misc
 import hickle as hkl
 
 if __name__ == '__main__':
-    data_prefix = 'facebook_segmpred_org_'
+    data_prefix = 'gd_yu_'
     sources_train = []
     X_train = []
     sources_val = []
