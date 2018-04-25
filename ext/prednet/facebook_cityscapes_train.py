@@ -33,10 +33,10 @@ json_file = os.path.join(WEIGHTS_DIR, 'prednet_facebook_segmpred_model.json')
 
 # Data files
 # 数据文件，包括训练的文件和源以及校准的
-train_file = os.path.join(DATA_DIR, 'facebook_segmpred_X_train.hkl')
-train_sources = os.path.join(DATA_DIR, 'facebook_segmpred_sources_train.hkl')
-val_file = os.path.join(DATA_DIR, 'facebook_segmpred_X_val.hkl')
-val_sources = os.path.join(DATA_DIR, 'facebook_segmpred_sources_val.hkl')
+train_file = os.path.join(DATA_DIR, 'facebook_segmpred_org_X_train.hkl')
+train_sources = os.path.join(DATA_DIR, 'facebook_segmpred_org_sources_train.hkl')
+val_file = os.path.join(DATA_DIR, 'facebook_segmpred_org_X_val.hkl')
+val_sources = os.path.join(DATA_DIR, 'facebook_segmpred_org_sources_val.hkl')
 # train_file = os.path.join(DATA_DIR, 'X_train.hkl')
 # train_sources = os.path.join(DATA_DIR, 'sources_train.hkl')
 # val_file = os.path.join(DATA_DIR, 'X_val.hkl')
