@@ -1,3 +1,6 @@
 .ipynb_checkpoints
 training*.pt
 facebook_segmpred__Data/
+*.hkl
+*.hdf5
+*.mov

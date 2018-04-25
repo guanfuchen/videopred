@@ -5,11 +5,11 @@ import torch
 from torch.autograd import Variable
 
 from videopred.dataloader.config import vpn_mnist_config
-from videopred.dataloader.vpn_minst import GenerateData
+from videopred.dataloader.vpn_minst import GenerateMovingMnistData
 from videopred.modelloader.prednet.prednet import PredNet
 
 if __name__ == '__main__':
-    data_generate = GenerateData()
+    data_generate = GenerateMovingMnistData()
     A_channels = (3, 48, 96, 192)
     R_channels = (3, 48, 96, 192)
     lr = 0.001 # if epoch < 75 else 0.0001

@@ -108,6 +108,27 @@ if __name__ == '__main__':
                             print('snap_first_train:', snap_first_train)
                             snap_first_train = True
                             misc.imsave('/tmp/tmp_train.png', pred_segment_rgb)
+
+                pred_sequences_segments_org = SegmPredDataBatch['RGBs']
+                # print(pred_sequences_segments.shape)
+                for sequence_id in range(pred_sequences_segments_org.shape[0]):
+                    # print('sequence_id:', sequence_id)
+                    # 校准数据是7个，4个输入值，3个输出值，同时大小不同，这里将数据修改为5位
+                    # pred_sequences_segment = pred_sequences_segments[sequence_id][0:5]
+                    pred_sequences_segment = pred_sequences_segments_org[sequence_id]
+                    # print('pred_sequences_segment.shape', pred_sequences_segment.shape)
+                    for pred_segment_id, pred_segment in enumerate(pred_sequences_segment):
+                        pred_segment = pred_segment.transpose((1, 2, 0))
+                        # print('pred_segment.shape', pred_segment.shape)
+                        pred_segment_rgb_diff = 'train_{}_{}_org'.format(valid_image_file_name, sequence_id)
+                        pred_segment_rgb_diff_save_dir = os.path.join(save_dir, pred_segment_rgb_diff)
+
+                        if not os.path.exists(pred_segment_rgb_diff_save_dir):
+                            os.mkdir(pred_segment_rgb_diff_save_dir)
+                        misc.imsave(os.path.join(pred_segment_rgb_diff_save_dir, '{}.png'.format(pred_segment_id)),
+                                    pred_segment)
+                        # print('pred_segment_id:', pred_segment_id)
+
         elif valid_dir_name == 'val':
             valid_image_files = glob.glob(os.path.join(valid_dir, '*.t7'))
             valid_image_files.sort()
@@ -148,6 +169,26 @@ if __name__ == '__main__':
                             print('snap_first_val:', snap_first_val)
                             snap_first_val = True
                             misc.imsave('/tmp/tmp_val.png', pred_segment_rgb)
+
+                pred_sequences_segments_org = SegmPredDataBatch['RGBs']
+                # print(pred_sequences_segments.shape)
+                for sequence_id in range(pred_sequences_segments_org.shape[0]):
+                    # print('sequence_id:', sequence_id)
+                    # 校准数据是7个，4个输入值，3个输出值，同时大小不同，这里将数据修改为5位
+                    # pred_sequences_segment = pred_sequences_segments[sequence_id][0:5]
+                    pred_sequences_segment = pred_sequences_segments_org[sequence_id]
+                    # print('pred_sequences_segment.shape', pred_sequences_segment.shape)
+                    for pred_segment_id, pred_segment in enumerate(pred_sequences_segment):
+                        pred_segment = pred_segment.transpose((1, 2, 0))
+                        # print('pred_segment.shape', pred_segment.shape)
+                        pred_segment_rgb_diff = 'val_{}_{}_org'.format(valid_image_file_name, sequence_id)
+                        pred_segment_rgb_diff_save_dir = os.path.join(save_dir, pred_segment_rgb_diff)
+
+                        if not os.path.exists(pred_segment_rgb_diff_save_dir):
+                            os.mkdir(pred_segment_rgb_diff_save_dir)
+                        misc.imsave(os.path.join(pred_segment_rgb_diff_save_dir, '{}.png'.format(pred_segment_id)), pred_segment)
+                        # print('pred_segment_id:', pred_segment_id)
+
 
     # X_train = np.array(X_train)
     # print('X_train.shape:', X_train.shape)
